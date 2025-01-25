@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: sans-serif;
+    position: relative; /*Resimlerin yukarda çıkması için*/
+
+}
+
+.navbar-link {
+    font-weight: bold;
+}
+
+.navbar{
+    background-color: #F5C96A;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+.navbar-link{
+    color: theme('colors.navbarText') !important;
+    transition: color 0.3s ease-in-out !important;
+}
+.navbar-link:hover{
+    color: theme('colors.secondary') !important;
+}
+.nav-container{
+    max-width: 1200px !important;
+
+}
+.featured-product-list{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content: center;
+    gap:20px;
+
+}
+.featured-product-card{
+    width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding:10px;
+    background-color: white;
+
+}
+.featured-product-card img{
+    max-width: 100%;
+    height: auto;
+
+}
