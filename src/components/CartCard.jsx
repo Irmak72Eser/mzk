@@ -4,7 +4,7 @@ import { fonts } from "../utils/fonts";
 
 const CartCard = ({ item, handleDelete }) => {
   const imageUrl =
-      "https://res.cloudinary.com/dlc5c1ycl/image/upload/v1710567613/cwlk21f74nd9iamrlzkh.png";
+      "https://res.cloudinary.com/dtkvarhjc/image/upload/v1737335437/z9269ypnumkcmufj0qlf.jpg";
   return (
       <View style={styles.card}>
         <Image source={{ uri: item.image }} style={styles.image} />

@@ -54,7 +54,7 @@ const SignUpPage = () => {
 									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
 									className='block w-full px-3 py-2 pl-10 bg-gray-700 border border-gray-600 rounded-md shadow-sm
 									 placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm'
-									placeholder='John Doe'
+									placeholder='İsim Soyisim'
 								/>
 							</div>
 						</div>
@@ -77,7 +77,7 @@ const SignUpPage = () => {
 									rounded-md shadow-sm
 									 placeholder-gray-400 focus:outline-none focus:ring-emerald-500 
 									 focus:border-emerald-500 sm:text-sm'
-									placeholder='you@example.com'
+									placeholder='email@email.com'
 								/>
 							</div>
 						</div>
@@ -147,7 +147,7 @@ const SignUpPage = () => {
 					</form>
 
 					<p className='mt-8 text-center text-sm text-gray-400'>
-						ÜYE MİSİNİZ?{" "}
+						Üye misiniz?{" "}
 						<Link to='/login' className='font-medium text-emerald-400 hover:text-emerald-300'>
 							Login here <ArrowRight className='inline h-4 w-4' />
 						</Link>
