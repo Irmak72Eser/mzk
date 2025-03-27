@@ -1,4 +1,4 @@
-import Coupon from "../models/coupon.model.js";
+/*import Coupon from "../models/coupon.model.js";
 import Order from "../models/order.model.js";
 import { stripe } from "../lib/stripe.js";
 
@@ -140,4 +140,117 @@ async function createNewCoupon(userId) {
 	await newCoupon.save();
 
 	return newCoupon;
-}
+}*/
+
+
+// backend/controllers/payment.controller.js
+import Order from "../models/order.model.js";
+import Coupon from "../models/coupon.model.js";
+
+export const createCheckoutSession = async (req, res) => {
+	try {
+		const { products, couponCode } = req.body;
+		const user = req.user;
+
+		if (!Array.isArray(products) || products.length === 0) {
+			return res.status(400).json({ error: "Sepet boş veya geçersiz" });
+		}
+
+		// Toplam tutarı hesapla
+		let totalAmount = products.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+		// Kupon kontrolü ve indirimi
+		if (couponCode) {
+			const coupon = await Coupon.findOne({
+				code: couponCode,
+				userId: user._id,
+				isActive: true
+			});
+
+			if (coupon) {
+				totalAmount -= (totalAmount * coupon.discountPercentage) / 100;
+			}
+		}
+
+		// Dummy ödeme session'ı oluştur
+		const dummySession = {
+			id: `sess_${Date.now()}`,
+			totalAmount,
+			products: products.map(p => ({
+				id: p._id,
+				name: p.name,
+				quantity: p.quantity,
+				price: p.price
+			})),
+			userId: user._id,
+			couponCode
+		};
+
+		// Yeni sipariş oluştur
+		const newOrder = new Order({
+			user: user._id,
+			products: products.map(p => ({
+				product: p._id,
+				quantity: p.quantity,
+				price: p.price
+			})),
+			totalAmount,
+			stripeSessionId: dummySession.id
+		});
+
+		await newOrder.save();
+
+		// Kuponu deaktive et
+		if (couponCode) {
+			await Coupon.findOneAndUpdate(
+				{ code: couponCode, userId: user._id },
+				{ isActive: false }
+			);
+		}
+
+		res.status(200).json({
+			success: true,
+			orderId: newOrder._id,
+			sessionId: dummySession.id,
+			success_url: `/purchase-success?session_id=${dummySession.id}`,
+			cancel_url: '/purchase-cancel'
+		});
+
+	} catch (error) {
+		console.error("Ödeme işlemi hatası:", error);
+		res.status(500).json({
+			success: false,
+			message: "Ödeme işlemi başlatılırken bir hata oluştu",
+			error: error.message
+		});
+	}
+};
+
+export const checkoutSuccess = async (req, res) => {
+	try {
+		const { sessionId } = req.body;
+
+		const order = await Order.findOne({ stripeSessionId: sessionId });
+		if (!order) {
+			return res.status(404).json({ message: "Sipariş bulunamadı" });
+		}
+
+		// Siparişi güncelle
+		order.status = 'completed';
+		await order.save();
+
+		res.status(200).json({
+			success: true,
+			message: "Ödeme başarıyla tamamlandı",
+			orderId: order._id
+		});
+
+	} catch (error) {
+		console.error("Başarılı ödeme işlemi hatası:", error);
+		res.status(500).json({
+			success: false,
+			message: "Ödeme onaylanırken bir hata oluştu",
+			error: error.message
+		});
+	}
+};
