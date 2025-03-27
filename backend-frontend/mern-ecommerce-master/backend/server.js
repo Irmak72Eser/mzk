@@ -253,6 +253,7 @@ app.use((err, req, res, next) => {
 		error: process.env.NODE_ENV === 'development' ? err.message : undefined
 	});
 });
+export default app;
 
 // --- app.listen() Kaldırıldı (Vercel için) ---
 // Vercel, sunucuyu kendisi başlatır, app.listen çağrısını kullanmaz.
@@ -268,6 +269,6 @@ app.listen(PORT, () => {
 // Vercel'in Express uygulamanızı bir Serverless Function olarak
 // çalıştırabilmesi için app nesnesini export etmeniz gerekir.
 // Bu satır dosyanın en sonunda olmalı.
-export default app;
+
 // VEYA CommonJS kullanıyorsanız: module.exports = app;
 // Projenizin package.json'ında "type": "module" varsa export default kullanın.
