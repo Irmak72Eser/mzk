@@ -177,7 +177,7 @@ app.listen(PORT, () => {
 });*/
 
 // import dotenv from 'dotenv'; // Vercel'de buna gerek yok, env değişkenleri Vercel ayarlarından gelir.
-import express from "express";
+/*import express from "express";
 import cookieParser from "cookie-parser";
 import path from "path";
 import cors from 'cors';
@@ -242,7 +242,7 @@ if (process.env.NODE_ENV === "production") {
 		res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
 	});
 }
-*/
+
 
 // Error handling middleware - Bu kalabilir
 app.use((err, req, res, next) => {
@@ -272,3 +272,15 @@ app.listen(PORT, () => {
 
 // VEYA CommonJS kullanıyorsanız: module.exports = app;
 // Projenizin package.json'ında "type": "module" varsa export default kullanın.
+
+import express from 'express';
+const app = express();
+
+// Sadece tek bir test rotası
+app.get('/api/health', (req, res) => {
+	console.log("--- API HEALTH Endpoint Reached ---"); // Log'da görmek için
+	res.status(200).send('Backend is Healthy!');
+});
+
+// Başka hiçbir middleware, rota veya kod yok
+export default app;
