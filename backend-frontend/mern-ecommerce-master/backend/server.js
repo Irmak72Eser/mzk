@@ -286,44 +286,57 @@ app.get('/api/health', (req, res) => {
 export default app;*/
 
 // backend/server.js
-import app from './app.js'; // app.js'den Express uygulamasını import et
+// import app from './app.js'; // <<< BU SATIRI SİLİN VEYA YORUM SATIRI YAPIN
+
+import express from 'express'; // <<< express'i BURADA import edin
 import dotenv from 'dotenv';
-import path from 'path'; // Statik dosyalar için eklendi
-import { fileURLToPath } from 'url'; // Statik dosyalar için eklendi
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config(); // Ortam değişkenlerini yükle (.env Render'da kullanılmaz, Dashboard'a girilmeli)
+// --- Express Uygulamasını BURADA Tanımlayın ---
+const app = express(); // <<< app'i BURADA oluşturun
 
-// --- Frontend Build Dosyalarını Sunmak İçin (GEREKLİ) ---
-// Eğer backend'in frontend'i sunmasını istiyorsan bu bölümü eklemelisin.
-// Alternatif: Frontend'i ayrı bir "Static Site" olarak Render'da deploy etmek.
-const __filename = fileURLToPath(import.meta.url); // ES Modüllerinde __dirname alternatifi
+// Daha önce app.js'de olan test rotası:
+app.get('/api/health', (req, res) => {
+	console.log("--- API HEALTH Endpoint Reached ---");
+	res.status(200).send('Backend is Healthy!');
+});
+
+// Buraya normalde app.js'de olan diğer middleware'leriniz (varsa) gelebilir
+// app.use(express.json());
+// app.use(cookieParser());
+// app.use('/api/users', userRoutes); // Gibi...
+// --- Express Uygulama Tanımı Sonu ---
+
+
+dotenv.config();
+
+// --- Frontend Build Dosyalarını Sunmak İçin ---
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Kök dizinimiz `backend-frontend/mern-ecommerce-master`
-// server.js `backend` içinde. frontend/dist'e ulaşmak için:
-// ../frontend/dist
 const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
 
-// 1. Statik dosyaları (CSS, JS, resimler) sun
+// 1. Statik dosyaları sun
+// ÖNEMLİ: Statik dosya sunumu ve API rotaları TANIMLANDIKTAN SONRA gelmeli
+// ama '*' catch-all rotasından ÖNCE gelmeli.
+// Eğer API rotalarınız varsa, bu satırın yeri önemli olabilir.
+// Şimdilik burada bırakalım:
 app.use(express.static(frontendDistPath));
 
-// API rotaların zaten app.js içinde veya başka yerden import ediliyor olmalı
-// app.use("/api/users", userRoutes); // Örnek
 
-// 2. Diğer tüm GET istekleri için index.html'i gönder (React Router'ın çalışması için)
-// Bu satır API rotalarından SONRA gelmeli
+// 2. Diğer tüm GET istekleri için index.html'i gönder (React Router)
+// BU SATIR TÜM API ROTALARINDAN SONRA GELMELİDİR!
 app.get('*', (req, res) => {
 	res.sendFile(path.resolve(frontendDistPath, 'index.html'));
 });
 // --- Frontend Build Dosyalarını Sunma Sonu ---
 
 
-// --- Sunucuyu Başlatma (PORT HATASININ ÇÖZÜMÜ) ---
-const PORT = process.env.PORT || 5000; // Render PORT değişkenini kullan, yoksa 5000
+// --- Sunucuyu Başlatma ---
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => { // '0.0.0.0' hostunu kullan!
 	console.log(`Server listening on port ${PORT}`);
-	// Opsiyonel: Statik dosyaların nereden sunulduğunu logla
 	console.log(`Serving static files from: ${frontendDistPath}`);
 });
 // --- Sunucuyu Başlatma Sonu ---
