@@ -283,7 +283,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Başka hiçbir middleware, rota veya kod yok
-export default app;*/
+export default app;
 
 // backend/server.js
 // import app from './app.js'; // <<< BU SATIRI SİLİN VEYA YORUM SATIRI YAPIN
@@ -337,6 +337,76 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => { // '0.0.0.0' hostunu kullan!
 	console.log(`Server listening on port ${PORT}`);
+	console.log(`Serving static files from: ${frontendDistPath}`);
+});
+// --- Sunucuyu Başlatma Sonu ---
+
+*/
+
+// backend/server.js
+import express from 'express';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser'; // <<< Cookie Parser'ı import et
+
+// --- Rota Dosyalarını Import Et ---
+// DİKKAT: Bu yolların senin proje yapına uygun olduğundan emin ol!
+import authRoutes from './routes/auth.route.js';
+import userRoutes from './routes/user.route.js';
+import productRoutes from './routes/product.route.js';
+// ... diğer rota dosyaların varsa buraya ekle
+
+// --- Veritabanı Bağlantısını Import Et ---
+// DİKKAT: Bu yolun senin proje yapına uygun olduğundan emin ol!
+import connectDB from './db/connectDB.js';
+
+dotenv.config();
+
+const app = express();
+
+// --- Temel Middleware'ler ---
+app.use(express.json({ limit: "5mb" })); // JSON body'lerini parse etmek için (limit isteğe bağlı)
+app.use(express.urlencoded({ extended: true })); // Form verilerini parse etmek için (gerekliyse)
+app.use(cookieParser()); // <<< Cookie'leri parse etmek için
+
+// --- API Rotalarını Kullan ---
+// DİKKAT: Bu yolların ve değişken adlarının doğru olduğundan emin ol!
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+// ... diğer rotaların için app.use satırları
+
+// --- Test Rotası (İsteğe Bağlı) ---
+app.get('/api/health', (req, res) => {
+	console.log("--- API HEALTH Endpoint Reached ---");
+	res.status(200).send('Backend is Healthy!');
+});
+
+// --- Frontend Build Dosyalarını Sunmak İçin ---
+// DİKKAT: Bu bölüm API rotalarından SONRA gelmeli
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+
+app.use(express.static(frontendDistPath));
+
+// --- Catch-all Rota (En Sonda) ---
+// DİKKAT: Bu bölüm TÜM API ve statik dosya rotalarından SONRA gelmeli
+app.get('*', (req, res) => {
+	res.sendFile(path.resolve(frontendDistPath, 'index.html'));
+});
+// --- Frontend Build Dosyalarını Sunma Sonu ---
+
+
+// --- Sunucuyu Başlatma ---
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, '0.0.0.0', () => {
+	console.log(`Server listening on port ${PORT}`);
+	// Veritabanı Bağlantısını Sunucu Başlamadan Önce Yapmak Daha İyi Olabilir
+	// Ancak sunucu dinlemeye başladıktan sonra da yapılabilir:
+	connectDB(); // <<< Veritabanına bağlan
 	console.log(`Serving static files from: ${frontendDistPath}`);
 });
 // --- Sunucuyu Başlatma Sonu ---
