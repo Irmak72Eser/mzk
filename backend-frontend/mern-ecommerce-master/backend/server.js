@@ -352,18 +352,17 @@ import cookieParser from 'cookie-parser';
 
 // --- Rota Dosyalarını Import Et ---
 import authRoutes from './routes/auth.route.js';
-// import userRoutes from './routes/user.route.js'; // <<< BU SATIRI SİL/YORUMLA
 import productRoutes from './routes/product.route.js';
-import cartRoutes from './routes/cart.route.js'; // <<< Eksikti, ekledim (varsa)
-import couponRoutes from './routes/coupon.route.js'; // <<< Eksikti, ekledim (varsa)
-import paymentRoutes from './routes/payment.route.js'; // <<< Eksikti, ekledim (varsa)
-import analyticsRoutes from './routes/analytics.route.js'; // <<< Eksikti, ekledim (varsa)
-// ... diğer rota dosyaların varsa buraya ekle
+import cartRoutes from './routes/cart.route.js';
+import couponRoutes from './routes/coupon.route.js';
+import paymentRoutes from './routes/payment.route.js';
+import analyticsRoutes from './routes/analytics.route.js';
 
-// --- Veritabanı Bağlantısını Import Et ---
-import connectDB from './db/connectDB.js'; // <<< Bu yolun doğru olduğunu varsayıyorum
+// --- Veritabanı Bağlantısını DOĞRU YOLDAN Import Et ---
+// DİKKAT: Dosya adı DB.js, içindeki fonksiyon connectDB (named export)
+import { connectDB } from './lib/DB.js'; // <<< YOL VE IMPORT ŞEKLİ DÜZELTİLDİ
 
-dotenv.config();
+dotenv.config(); // Bu satır Render'da etkisizdir ama lokal için kalabilir
 
 const app = express();
 
@@ -374,13 +373,11 @@ app.use(cookieParser());
 
 // --- API Rotalarını Kullan ---
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes); // <<< BU SATIRI SİL/YORUMLA
 app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes); // <<< Eksikti, ekledim
-app.use('/api/coupons', couponRoutes); // <<< Eksikti, ekledim (veya /api/coupon)
-app.use('/api/payment', paymentRoutes); // <<< Eksikti, ekledim
-app.use('/api/analytics', analyticsRoutes); // <<< Eksikti, ekledim
-// ... diğer rotaların için app.use satırları
+app.use('/api/cart', cartRoutes);
+app.use('/api/coupons', couponRoutes); // Veya /api/coupon
+app.use('/api/payment', paymentRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // --- Test Rotası (İsteğe Bağlı) ---
 app.get('/api/health', (req, res) => {
@@ -403,11 +400,11 @@ app.get('*', (req, res) => {
 
 
 // --- Sunucuyu Başlatma ---
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; // Render'ın PORT'unu kullanır
 
 app.listen(PORT, '0.0.0.0', () => {
 	console.log(`Server listening on port ${PORT}`);
-	connectDB();
+	connectDB(); // <<< DB Bağlantısını çağır
 	console.log(`Serving static files from: ${frontendDistPath}`);
 });
 // --- Sunucuyu Başlatma Sonu ---
