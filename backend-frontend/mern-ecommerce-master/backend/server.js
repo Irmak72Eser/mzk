@@ -358,41 +358,68 @@ import couponRoutes from './routes/coupon.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import analyticsRoutes from './routes/analytics.route.js';
 
-// --- Veritabanı Bağlantısını DOĞRU YOLDAN Import Et ---
-// DİKKAT: Dosya adı DB.js, içindeki fonksiyon connectDB (named export)
-import { connectDB } from './lib/DB.js'; // <<< YOL VE IMPORT ŞEKLİ DÜZELTİLDİ
+// backend/server.js
+import express from 'express';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
 
-dotenv.config(); // Bu satır Render'da etkisizdir ama lokal için kalabilir
+// --- Rota Dosyalarını Import Et ---
+// Bu yolların projenle eşleştiğini varsayıyoruz:
+import authRoutes from './routes/auth.route.js';
+import productRoutes from './routes/product.route.js';
+import cartRoutes from './routes/cart.route.js';
+import couponRoutes from './routes/coupon.route.js';
+import paymentRoutes from './routes/payment.route.js';
+import analyticsRoutes from './routes/analytics.route.js';
+
+// --- Veritabanı Bağlantısını DOĞRU YOLDAN ve DOĞRU İSİMLE Import Et ---
+// DİKKAT: Dosya adı küçük harf 'db.js', named export {} kullanılıyor.
+import { connectDB } from './lib/db.js'; // <<< DOĞRU KÜÇÜK HARFLİ İMPORT
+
+dotenv.config(); // Lokal geliştirme için .env dosyasını yükler (Render'da etkisiz)
 
 const app = express();
 
 // --- Temel Middleware'ler ---
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
+// JSON body'lerini (örn: API istekleri) parse etmek için
+app.use(express.json({ limit: "5mb" })); // Limit isteğe bağlı
+// URL-encoded body'lerini (örn: HTML formları) parse etmek için
+app.use(express.urlencoded({ extended: true })); // Genellikle API'ler için false yeterlidir
+// Cookie'leri parse etmek için
 app.use(cookieParser());
 
 // --- API Rotalarını Kullan ---
+// Gelen istekleri ilgili rota dosyalarına yönlendirir
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
-app.use('/api/coupons', couponRoutes); // Veya /api/coupon
+app.use('/api/coupons', couponRoutes); // Veya /api/coupon? API yolunu kontrol et
 app.use('/api/payment', paymentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
-// --- Test Rotası (İsteğe Bağlı) ---
+// --- Test Rotası (Sunucunun çalıştığını kontrol etmek için, isteğe bağlı) ---
 app.get('/api/health', (req, res) => {
 	console.log("--- API HEALTH Endpoint Reached ---");
 	res.status(200).send('Backend is Healthy!');
 });
 
 // --- Frontend Build Dosyalarını Sunmak İçin ---
+// Bu bölüm, derlenmiş React uygulamasının statik dosyalarını (HTML, CSS, JS) sunar
+// API Rotalarından SONRA gelmeli
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// `server.js` backend klasöründe olduğu için, frontend/dist'e ulaşmak için ../ kullanılır
 const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
 
+// Statik dosyaları sunar (örn: /assets/index.css)
 app.use(express.static(frontendDistPath));
 
-// --- Catch-all Rota (En Sonda) ---
+// --- Catch-all Rota (React Router'ın Çalışması İçin - EN SONDA) ---
+// Yukarıdaki API veya statik dosya rotalarıyla eşleşmeyen TÜM GET istekleri
+// ana index.html dosyasını gönderir. Bu, React'in client-side routing yapmasını sağlar.
+// BU SATIR MUTLAKA TÜM DİĞER app.use ve app.get/post/vb. SONRA GELMELİDİR!
 app.get('*', (req, res) => {
 	res.sendFile(path.resolve(frontendDistPath, 'index.html'));
 });
@@ -400,11 +427,14 @@ app.get('*', (req, res) => {
 
 
 // --- Sunucuyu Başlatma ---
-const PORT = process.env.PORT || 5000; // Render'ın PORT'unu kullanır
+// Render'ın sağladığı PORT ortam değişkenini kullan, yoksa lokal için 5000
+const PORT = process.env.PORT || 5000;
 
+// Sunucuyu 0.0.0.0 adresinde dinle (Render'ın erişebilmesi için önemli)
 app.listen(PORT, '0.0.0.0', () => {
 	console.log(`Server listening on port ${PORT}`);
-	connectDB(); // <<< DB Bağlantısını çağır
+	// Sunucu dinlemeye başladıktan sonra veritabanına bağlan
+	connectDB();
 	console.log(`Serving static files from: ${frontendDistPath}`);
 });
 // --- Sunucuyu Başlatma Sonu ---
