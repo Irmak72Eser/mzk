@@ -263,7 +263,7 @@ app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
 	connectDB();
 });
-*/
+
 
 // --- Vercel İçin Gerekli Export ---
 // Vercel'in Express uygulamanızı bir Serverless Function olarak
@@ -283,4 +283,47 @@ app.get('/api/health', (req, res) => {
 });
 
 // Başka hiçbir middleware, rota veya kod yok
-export default app;
+export default app;*/
+
+// backend/server.js
+import app from './app.js'; // app.js'den Express uygulamasını import et
+import dotenv from 'dotenv';
+import path from 'path'; // Statik dosyalar için eklendi
+import { fileURLToPath } from 'url'; // Statik dosyalar için eklendi
+
+dotenv.config(); // Ortam değişkenlerini yükle (.env Render'da kullanılmaz, Dashboard'a girilmeli)
+
+// --- Frontend Build Dosyalarını Sunmak İçin (GEREKLİ) ---
+// Eğer backend'in frontend'i sunmasını istiyorsan bu bölümü eklemelisin.
+// Alternatif: Frontend'i ayrı bir "Static Site" olarak Render'da deploy etmek.
+const __filename = fileURLToPath(import.meta.url); // ES Modüllerinde __dirname alternatifi
+const __dirname = path.dirname(__filename);
+
+// Kök dizinimiz `backend-frontend/mern-ecommerce-master`
+// server.js `backend` içinde. frontend/dist'e ulaşmak için:
+// ../frontend/dist
+const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
+
+// 1. Statik dosyaları (CSS, JS, resimler) sun
+app.use(express.static(frontendDistPath));
+
+// API rotaların zaten app.js içinde veya başka yerden import ediliyor olmalı
+// app.use("/api/users", userRoutes); // Örnek
+
+// 2. Diğer tüm GET istekleri için index.html'i gönder (React Router'ın çalışması için)
+// Bu satır API rotalarından SONRA gelmeli
+app.get('*', (req, res) => {
+	res.sendFile(path.resolve(frontendDistPath, 'index.html'));
+});
+// --- Frontend Build Dosyalarını Sunma Sonu ---
+
+
+// --- Sunucuyu Başlatma (PORT HATASININ ÇÖZÜMÜ) ---
+const PORT = process.env.PORT || 5000; // Render PORT değişkenini kullan, yoksa 5000
+
+app.listen(PORT, '0.0.0.0', () => { // '0.0.0.0' hostunu kullan!
+	console.log(`Server listening on port ${PORT}`);
+	// Opsiyonel: Statik dosyaların nereden sunulduğunu logla
+	console.log(`Serving static files from: ${frontendDistPath}`);
+});
+// --- Sunucuyu Başlatma Sonu ---
