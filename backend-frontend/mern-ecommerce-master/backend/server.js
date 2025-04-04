@@ -348,33 +348,38 @@ import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import cookieParser from 'cookie-parser'; // <<< Cookie Parser'ı import et
+import cookieParser from 'cookie-parser';
 
 // --- Rota Dosyalarını Import Et ---
-// DİKKAT: Bu yolların senin proje yapına uygun olduğundan emin ol!
 import authRoutes from './routes/auth.route.js';
-import userRoutes from './routes/user.route.js';
+// import userRoutes from './routes/user.route.js'; // <<< BU SATIRI SİL/YORUMLA
 import productRoutes from './routes/product.route.js';
+import cartRoutes from './routes/cart.route.js'; // <<< Eksikti, ekledim (varsa)
+import couponRoutes from './routes/coupon.route.js'; // <<< Eksikti, ekledim (varsa)
+import paymentRoutes from './routes/payment.route.js'; // <<< Eksikti, ekledim (varsa)
+import analyticsRoutes from './routes/analytics.route.js'; // <<< Eksikti, ekledim (varsa)
 // ... diğer rota dosyaların varsa buraya ekle
 
 // --- Veritabanı Bağlantısını Import Et ---
-// DİKKAT: Bu yolun senin proje yapına uygun olduğundan emin ol!
-import connectDB from './db/connectDB.js';
+import connectDB from './db/connectDB.js'; // <<< Bu yolun doğru olduğunu varsayıyorum
 
 dotenv.config();
 
 const app = express();
 
 // --- Temel Middleware'ler ---
-app.use(express.json({ limit: "5mb" })); // JSON body'lerini parse etmek için (limit isteğe bağlı)
-app.use(express.urlencoded({ extended: true })); // Form verilerini parse etmek için (gerekliyse)
-app.use(cookieParser()); // <<< Cookie'leri parse etmek için
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // --- API Rotalarını Kullan ---
-// DİKKAT: Bu yolların ve değişken adlarının doğru olduğundan emin ol!
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+// app.use('/api/users', userRoutes); // <<< BU SATIRI SİL/YORUMLA
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes); // <<< Eksikti, ekledim
+app.use('/api/coupons', couponRoutes); // <<< Eksikti, ekledim (veya /api/coupon)
+app.use('/api/payment', paymentRoutes); // <<< Eksikti, ekledim
+app.use('/api/analytics', analyticsRoutes); // <<< Eksikti, ekledim
 // ... diğer rotaların için app.use satırları
 
 // --- Test Rotası (İsteğe Bağlı) ---
@@ -384,7 +389,6 @@ app.get('/api/health', (req, res) => {
 });
 
 // --- Frontend Build Dosyalarını Sunmak İçin ---
-// DİKKAT: Bu bölüm API rotalarından SONRA gelmeli
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
@@ -392,7 +396,6 @@ const frontendDistPath = path.resolve(__dirname, '..', 'frontend', 'dist');
 app.use(express.static(frontendDistPath));
 
 // --- Catch-all Rota (En Sonda) ---
-// DİKKAT: Bu bölüm TÜM API ve statik dosya rotalarından SONRA gelmeli
 app.get('*', (req, res) => {
 	res.sendFile(path.resolve(frontendDistPath, 'index.html'));
 });
@@ -404,9 +407,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
 	console.log(`Server listening on port ${PORT}`);
-	// Veritabanı Bağlantısını Sunucu Başlamadan Önce Yapmak Daha İyi Olabilir
-	// Ancak sunucu dinlemeye başladıktan sonra da yapılabilir:
-	connectDB(); // <<< Veritabanına bağlan
+	connectDB();
 	console.log(`Serving static files from: ${frontendDistPath}`);
 });
 // --- Sunucuyu Başlatma Sonu ---
